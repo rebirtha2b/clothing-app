@@ -20,7 +20,7 @@ A single-page, frontend-only tool. The user uploads two images (a person and a g
 
 Data flows in one direction: `App.tsx` owns all cross-cutting state (`status`, `errorMessage`, `resultUrl`) and passes it down. The two upload tiles are the only stateful children, and each owns its file through a `useImageSlot` instance.
 
-- `lib/constants.ts` — webhook URL, accepted MIME types, size cap. `ACCEPT_ATTR` duplicates `ACCEPTED_TYPES` for the file picker and is kept in sync by hand.
+- `lib/constants.ts` — webhook URL (from `VITE_WEBHOOK_URL`, throws at import if unset), accepted MIME types, size cap. `ACCEPT_ATTR` duplicates `ACCEPTED_TYPES` for the file picker and is kept in sync by hand.
 - `lib/validate.ts` — `validateFile` is the single validation entry point. Both the file input and the drop handler call it, so drag-and-drop cannot bypass the `accept` attribute.
 - `lib/api.ts` — the only place that talks to the network.
 - `hooks/useImageSlot.ts` — one upload slot's file plus its object URL.
@@ -36,7 +36,7 @@ Three things are load-bearing and easy to break:
 
 1. **Field names must be exactly `image1` and `image2`.** n8n matches on them.
 2. **Never set a `Content-Type` header on the request.** The browser has to write the multipart boundary itself; setting the header by hand produces a body n8n cannot parse.
-3. **A 200 does not mean you got an image.** n8n returns JSON error bodies with a 200 status, so `api.ts` checks `blob.size` and `blob.type.startsWith("image/")` before resolving. Do not remove those checks.
+3. **A 200 does not mean you got an image.** n8n returns JSON error bodies with a 200 status, so `api.ts` checks `blob.size` and matches the MIME against the `RESULT_TYPES` allowlist before resolving. The allowlist is deliberate — a `startsWith("image/")` test would admit `image/svg+xml`, which is an active-content format that the app also hands to the user as a download. Do not loosen it back to a prefix check.
 
 ### CORS shapes the deployment
 
@@ -44,7 +44,15 @@ Verified against the live webhook: n8n sends `Access-Control-Allow-Origin` on **
 
 Error responses do **not** carry those headers. A failing webhook gets blocked by the browser, `fetch` itself rejects, and the UI reports "Could not reach the server" rather than the generic message — so a genuine n8n 500 reads to the user as a connectivity problem. This is a known limitation of calling the webhook directly, not a bug in `api.ts`.
 
-**Do not route this call through a Vercel serverless function.** A measured round trip is ~20s; Hobby functions default to a 10s cap (60s max), so proxying would introduce timeouts that the direct call does not have.
+**Think hard before routing this call through a Vercel serverless function.** Measured round trips have ranged 20s–40s against a Hobby default cap of 10s (60s maximum). A proxy would introduce timeouts the direct call does not have, and the observed variance leaves little headroom even at 60s. The one reason to accept that cost is moving the webhook server-side so it stops being publicly callable — see below.
+
+## Security posture
+
+`vercel.json` sets CSP, HSTS, `nosniff`, `frame-ancestors 'none'`, and a restrictive `Permissions-Policy` on every route. **The CSP `connect-src` hardcodes the n8n origin** — changing `VITE_WEBHOOK_URL` to a different host without updating `connect-src` will cause the browser to block the request. These two must move together.
+
+**`VITE_WEBHOOK_URL` is configuration, not a secret.** Vite inlines `VITE_*` variables into the bundle at build time; the URL is readable in DevTools on the deployed site. `.env` keeps it out of git and per-environment, nothing more. Anyone who reads it can POST to the workflow and consume the account's execution quota.
+
+Genuinely closing that hole needs the endpoint to stop being reachable from the client — either auth enforced inside the n8n workflow with the credential held server-side, or a backend proxy that keeps the real URL private (paying the timeout cost above). Do not present `.env` alone as having solved it.
 
 ## Design direction
 

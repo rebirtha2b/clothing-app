@@ -5,3 +5,7 @@ dist-ssr
 .vercel
 .DS_Store
 *.log
+
+.env
+.env.*
+!.env.example

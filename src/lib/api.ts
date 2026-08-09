@@ -1,4 +1,4 @@
-import { GENERIC_ERROR, WEBHOOK_URL } from "./constants";
+import { GENERIC_ERROR, RESULT_TYPES, WEBHOOK_URL } from "./constants";
 
 /**
  * Posts both images to the n8n webhook and returns the merged image.
@@ -38,9 +38,14 @@ export async function generate(
   if (blob.size === 0) {
     throw new Error("The server returned an empty response.");
   }
-  if (!blob.type.startsWith("image/")) {
-    throw new Error("The server did not return an image.");
+  // Match against an explicit raster allowlist rather than an "image/" prefix,
+  // which would also admit image/svg+xml.
+  const mime = blob.type.split(";")[0].trim().toLowerCase();
+  if (!(RESULT_TYPES as readonly string[]).includes(mime)) {
+    throw new Error("The server did not return a supported image.");
   }
 
-  return blob;
+  // Re-wrap so the downloaded file carries the type we actually validated,
+  // rather than whatever the response header claimed.
+  return new Blob([blob], { type: mime });
 }
