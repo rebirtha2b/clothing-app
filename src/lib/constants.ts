@@ -4,15 +4,35 @@
  * configuration hygiene (per-environment, out of source control), not because
  * that makes it private. Never put a real secret behind a VITE_ prefix.
  */
-const url = import.meta.env.VITE_WEBHOOK_URL;
+function readWebhookUrl(): { url: string; error: string | null } {
+  const raw = import.meta.env.VITE_WEBHOOK_URL;
 
-if (!url) {
-  throw new Error(
-    "VITE_WEBHOOK_URL is not set. Copy .env.example to .env and fill it in.",
-  );
+  if (!raw) return { url: "", error: "VITE_WEBHOOK_URL is not set." };
+
+  let parsed: URL;
+  try {
+    parsed = new URL(raw);
+  } catch {
+    return { url: "", error: "VITE_WEBHOOK_URL is not a valid URL." };
+  }
+  if (parsed.protocol !== "https:") {
+    return { url: "", error: "VITE_WEBHOOK_URL must use https." };
+  }
+
+  return { url: raw, error: null };
 }
 
-export const WEBHOOK_URL: string = url;
+const config = readWebhookUrl();
+
+/**
+ * Non-null when the app cannot run. `main.tsx` renders an explanation instead
+ * of mounting App. Throwing here would abort module evaluation before React
+ * mounts, which shows the user a blank page and puts the only diagnostic in
+ * the console — the exact failure mode this replaced.
+ */
+export const CONFIG_ERROR: string | null = config.error;
+
+export const WEBHOOK_URL: string = config.url;
 
 export const ACCEPTED_TYPES = [
   "image/jpeg",

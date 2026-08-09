@@ -11,6 +11,10 @@ export async function generate(
   image2: File,
   signal: AbortSignal,
 ): Promise<Blob> {
+  // Unreachable while main.tsx gates on CONFIG_ERROR, but a POST to "" would
+  // silently hit the app's own origin, so refuse it explicitly.
+  if (!WEBHOOK_URL) throw new Error(GENERIC_ERROR);
+
   const formData = new FormData();
   formData.append("image1", image1);
   formData.append("image2", image2);

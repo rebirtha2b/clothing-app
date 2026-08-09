@@ -7,9 +7,11 @@ import "@fontsource/jost/500.css";
 import "./index.css";
 
 import App from "./App";
+import ConfigError from "./components/ConfigError";
+import { CONFIG_ERROR } from "./lib/constants";
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
-    <App />
+    {CONFIG_ERROR ? <ConfigError message={CONFIG_ERROR} /> : <App />}
   </StrictMode>,
 );
