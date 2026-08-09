@@ -37,19 +37,10 @@ export default function ResultTile({
   downloadName,
 }: Props) {
   return (
-    <div className="flex flex-col">
-      <div className="mb-3 flex items-baseline justify-between">
-        <span className="text-[11px] tracking-[0.18em] uppercase">
-          03 — Result
-        </span>
-      </div>
-
-      <div className="relative aspect-[3/4] w-full overflow-hidden border border-hairline bg-tile">
+    <section>
+      <div className="flex min-h-[26rem] items-center justify-center rounded-xl bg-card p-4">
         {status === "loading" && (
-          <div
-            className="flex h-full w-full flex-col items-center justify-center gap-4 text-ink"
-            role="status"
-          >
+          <div className="flex flex-col items-center gap-4 text-ink" role="status">
             <Spinner />
             <span className="text-[11px] tracking-[0.18em] uppercase">
               Generating image…
@@ -58,41 +49,37 @@ export default function ResultTile({
         )}
 
         {status === "error" && (
-          <div className="flex h-full w-full items-center justify-center px-8">
-            <p role="alert" className="text-center text-sm text-accent">
-              {errorMessage}
-            </p>
-          </div>
+          <p role="alert" className="max-w-sm text-center text-sm text-accent">
+            {errorMessage}
+          </p>
         )}
 
         {status === "success" && resultUrl && (
           <img
             src={resultUrl}
             alt="Generated result"
-            className="h-full w-full object-contain"
+            className="max-h-[70vh] max-w-full rounded-lg object-contain"
           />
         )}
 
         {(status === "empty" || status === "ready") && (
-          <div className="flex h-full w-full items-center justify-center px-8">
-            <p className="text-center text-xs text-muted">
-              Your result appears here.
-            </p>
-          </div>
+          <p className="text-center text-xs text-muted">
+            Your result appears here.
+          </p>
         )}
       </div>
 
-      <div className="mt-3 flex h-5 items-center gap-4 text-[11px] tracking-[0.18em] uppercase">
-        {status === "success" && resultUrl && (
+      {status === "success" && resultUrl && (
+        <div className="mt-6 flex justify-center">
           <a
             href={resultUrl}
             download={downloadName}
-            className="underline underline-offset-4 hover:text-muted"
+            className="bg-ink px-10 py-4 text-[11px] tracking-[0.24em] text-white uppercase transition-opacity hover:opacity-85"
           >
-            Download
+            Download result
           </a>
-        )}
-      </div>
-    </div>
+        </div>
+      )}
+    </section>
   );
 }

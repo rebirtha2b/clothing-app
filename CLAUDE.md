@@ -48,7 +48,10 @@ Error responses do **not** carry those headers. A failing webhook gets blocked b
 
 ## Design direction
 
-The UI deliberately follows `page_inspiration.jpg` (Rinascente — a white editorial luxury-retail page): white field, `#111` ink, hairline `#e5e5e5` rules, wide-tracked uppercase type, `#f4f4f4` image tiles, solid-black primary button.
+Two references, each governing a different layer:
+
+- **`page_inspiration.jpg`** (Rinascente) — the page shell: white field, `#111` ink, hairline `#e5e5e5` rules, wide-tracked uppercase type, header/nav/breadcrumb/footer chrome.
+- **`better_frontend_style.jpg`** — the tool area: two upload cards side by side, then a **full-width result panel below**, not a third column. Cards are `rounded-xl` on `--color-card` (`#f7f8fa`), previews are contained rather than cropped, each shows its filename beneath, and a circular black `×` in the card corner removes the image. Primary and download buttons are compact, centered, solid black — not full-width.
 
 **The PRD's "Design Direction" section says dark background. That is intentionally not followed** — the acceptance criteria require matching the reference screenshot, and the user confirmed the reference wins. Do not "fix" the light theme.
 
@@ -56,7 +59,7 @@ Other conventions:
 
 - The accent red `#e8563f` (from the reference's "PROMO" nav item) is reserved exclusively for error text. Do not use it decoratively.
 - Design tokens live in the `@theme` block of `src/index.css`. This is **Tailwind v4** — there is no `tailwind.config.js` and adding one is not how you configure it. New tokens go in `@theme` and become utilities automatically (`--color-ink` → `text-ink`, `bg-ink`).
-- The result image uses `object-contain`, the input previews use `object-cover`. The result must never be cropped — it is the app's output.
+- Every image uses `object-contain`. Nothing is ever cropped to fill a container — the result especially, since it is the app's output.
 
 ## Verifying changes
 

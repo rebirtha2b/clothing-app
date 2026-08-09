@@ -121,40 +121,39 @@ export default function App() {
           </span>
         </div>
 
-        <div className="mt-8 grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="mt-8 grid grid-cols-1 gap-6 sm:grid-cols-2">
           <ImageDropTile
-            index={1}
             label="Source"
             hint="A photo of the person"
             slot={image1}
             disabled={busy}
           />
           <ImageDropTile
-            index={2}
             label="Garment"
             hint="The item to apply"
             slot={image2}
             disabled={busy}
           />
-          <div className="sm:col-span-2 lg:col-span-1">
-            <ResultTile
-              status={status}
-              resultUrl={resultUrl}
-              errorMessage={errorMessage}
-              downloadName={`merged.${resultExt}`}
-            />
-          </div>
         </div>
 
-        <div className="mt-14 flex justify-center">
+        <div className="mt-10 flex justify-center">
           <button
             type="button"
             onClick={onGenerate}
             disabled={!bothReady || busy}
-            className="w-full max-w-md cursor-pointer bg-ink px-10 py-5 text-[11px] tracking-[0.24em] text-white uppercase transition-opacity hover:opacity-85 disabled:cursor-not-allowed disabled:bg-hairline disabled:text-muted disabled:opacity-100"
+            className="cursor-pointer bg-ink px-10 py-4 text-[11px] tracking-[0.24em] text-white uppercase transition-opacity hover:opacity-85 disabled:cursor-not-allowed disabled:bg-hairline disabled:text-muted disabled:opacity-100"
           >
-            {busy ? "Generating…" : "Generate"}
+            {busy ? "Generating…" : "Generate try-on"}
           </button>
+        </div>
+
+        <div className="mt-10">
+          <ResultTile
+            status={status}
+            resultUrl={resultUrl}
+            errorMessage={errorMessage}
+            downloadName={`merged.${resultExt}`}
+          />
         </div>
       </main>
 
