@@ -5,10 +5,14 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ## Commands
 
 ```bash
+cp .env.example .env   # required first — see below
+npm install
 npm run dev       # Vite dev server on :5173
 npm run build     # tsc -b && vite build  → dist/
 npm run preview   # serve the production build
 ```
+
+`.env` is gitignored, so a fresh clone has none. Without `VITE_WEBHOOK_URL` the app throws at import rather than starting. Vite only reads `.env` at startup — **restart the dev server after editing it**, HMR will not pick it up.
 
 There is no test framework and no linter. `npm run build` is the only automated gate — it typechecks all three tsconfig projects before bundling. Verify behavior by driving the app in a browser; the states worth exercising are listed under "Verifying changes" below.
 
@@ -76,7 +80,7 @@ The states that have regressed or are easy to break, in rough order of value:
 - **Duplicate submit** — clicking Generate rapidly must produce exactly one network request. Guarded by both the `disabled` prop and a `busy` check inside `onGenerate`; an `AbortController` cancels any in-flight run.
 - **Validation** — reject a non-image and an oversize file, through *both* the picker and drag-and-drop.
 - **Gating** — Generate stays disabled until both slots are filled.
-- **Full round trip** — expect ~20s; confirm the request payload shows parts named `image1`/`image2` and a browser-generated multipart boundary.
-- **Error state** — temporarily point `WEBHOOK_URL` at a bad path, then revert.
+- **Full round trip** — measured at 20s and 40s on separate runs, so allow a generous timeout before concluding it hung. Confirm the request payload shows parts named `image1`/`image2` and a browser-generated multipart boundary.
+- **Error state** — temporarily point `VITE_WEBHOOK_URL` at a bad path and restart the dev server, then revert.
 
 `performance.getEntriesByType("resource").filter(e => e.name.includes("n8n.cloud"))` is a quick way to count outbound calls from the console.
