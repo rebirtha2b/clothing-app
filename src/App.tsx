@@ -1,9 +1,11 @@
 import { useEffect, useRef, useState } from "react";
 
+import AuthScreen from "./components/AuthScreen";
 import Header from "./components/Header";
 import ImageDropTile from "./components/ImageDropTile";
 import ResultTile from "./components/ResultTile";
 import StatusPills from "./components/StatusPills";
+import { useAuth } from "./hooks/useAuth";
 import { useImageSlot } from "./hooks/useImageSlot";
 import { generate } from "./lib/api";
 import { GENERIC_ERROR } from "./lib/constants";
@@ -16,7 +18,23 @@ function extensionFor(type: string): string {
   return "jpg";
 }
 
+/**
+ * Auth gate. Studio is a separate component so its state — including the two
+ * object-URL owning image slots — is created on sign in and torn down on sign
+ * out, rather than living behind a signed-out screen.
+ */
 export default function App() {
+  const { session, loading } = useAuth();
+
+  if (loading) {
+    // A stored session resolves in a tick; this only avoids a login flash.
+    return <div className="min-h-screen" aria-busy="true" />;
+  }
+
+  return session ? <Studio /> : <AuthScreen />;
+}
+
+function Studio() {
   const image1 = useImageSlot();
   const image2 = useImageSlot();
 

@@ -8,10 +8,19 @@ import "./index.css";
 
 import App from "./App";
 import ConfigError from "./components/ConfigError";
+import { AuthProvider } from "./hooks/useAuth";
 import { CONFIG_ERROR } from "./lib/constants";
 
+// The config check stays outermost: AuthProvider builds a Supabase client from
+// these same values, so a misconfigured app must not get that far.
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
-    {CONFIG_ERROR ? <ConfigError message={CONFIG_ERROR} /> : <App />}
+    {CONFIG_ERROR ? (
+      <ConfigError message={CONFIG_ERROR} />
+    ) : (
+      <AuthProvider>
+        <App />
+      </AuthProvider>
+    )}
   </StrictMode>,
 );

@@ -17,14 +17,15 @@ export default function ConfigError({ message }: Props) {
         <h1 className="mt-4 text-3xl font-light tracking-tight">{message}</h1>
 
         <p className="mt-6 text-sm text-muted">
-          The app cannot reach its image-generation webhook without this value.
+          The app cannot sign users in or reach its image-generation webhook
+          without this value.
         </p>
 
         <div className="mt-8 border-t border-hairline pt-6">
           <p className="text-[11px] tracking-[0.18em] uppercase">Local</p>
           <p className="mt-2 text-sm text-muted">
             Copy <code className="text-ink">.env.example</code> to{" "}
-            <code className="text-ink">.env</code>, fill in the URL, then
+            <code className="text-ink">.env</code>, fill in every value, then
             restart the dev server — Vite reads it only at startup.
           </p>
         </div>

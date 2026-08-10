@@ -1,3 +1,5 @@
+import { useAuth } from "../hooks/useAuth";
+
 const NAV_ITEMS = [
   "STUDIO",
   "MERGE",
@@ -8,13 +10,30 @@ const NAV_ITEMS = [
 ];
 
 export default function Header() {
+  const { displayName, signOut } = useAuth();
+
   return (
     <header>
       <div className="border-b border-hairline">
-        <div className="mx-auto flex h-16 max-w-6xl items-center justify-center px-6">
+        {/* Brand stays optically centred; the account block is pinned right so
+            it cannot push the wordmark off centre on narrow screens. */}
+        <div className="relative mx-auto flex h-16 max-w-6xl items-center justify-center px-6">
           <span className="text-xl font-light tracking-[0.3em] uppercase sm:text-2xl">
             Atelier
           </span>
+
+          <div className="absolute right-6 flex items-center gap-4">
+            <span className="hidden max-w-[12rem] truncate text-[11px] tracking-[0.18em] text-muted uppercase sm:inline">
+              {displayName}
+            </span>
+            <button
+              type="button"
+              onClick={() => void signOut()}
+              className="cursor-pointer text-[11px] whitespace-nowrap tracking-[0.18em] text-muted uppercase transition-colors hover:text-ink"
+            >
+              Sign out
+            </button>
+          </div>
         </div>
       </div>
 

@@ -9,4 +9,12 @@ dist-ssr
 .env
 .env.*
 !.env.example
+
+# Debugging screenshots. Design references (better_frontend_style.jpg,
+# page_inspiration.jpg) are tracked on purpose and must not match these.
 vercel.jpg
+error_vercel.jpg
+email_confirmation_off.jpg
+
+.mcp.json
+
