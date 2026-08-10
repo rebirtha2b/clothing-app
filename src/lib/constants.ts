@@ -26,12 +26,15 @@ function readHttpsUrl(
   return { url: raw, error: null };
 }
 
-const webhook = readHttpsUrl("VITE_WEBHOOK_URL", import.meta.env.VITE_WEBHOOK_URL);
 const supabaseUrl = readHttpsUrl(
   "VITE_SUPABASE_URL",
   import.meta.env.VITE_SUPABASE_URL,
 );
 const supabaseKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY ?? "";
+const paymentLink = readHttpsUrl(
+  "VITE_STRIPE_PAYMENT_LINK",
+  import.meta.env.VITE_STRIPE_PAYMENT_LINK,
+);
 
 /**
  * Non-null when the app cannot run. `main.tsx` renders an explanation instead
@@ -42,15 +45,32 @@ const supabaseKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY ?? "";
  * First problem wins; the screen names one variable at a time.
  */
 export const CONFIG_ERROR: string | null =
-  webhook.error ??
   supabaseUrl.error ??
-  (supabaseKey ? null : "VITE_SUPABASE_PUBLISHABLE_KEY is not set.");
-
-export const WEBHOOK_URL: string = webhook.url;
+  (supabaseKey ? null : "VITE_SUPABASE_PUBLISHABLE_KEY is not set.") ??
+  paymentLink.error;
 
 export const SUPABASE_URL: string = supabaseUrl.url;
 
 export const SUPABASE_PUBLISHABLE_KEY: string = supabaseKey;
+
+/**
+ * Stripe Payment Link for the one-time unlock. Public by design — it identifies
+ * a price, not an account, and Stripe hosts the page.
+ */
+export const PAYMENT_LINK_URL: string = paymentLink.url;
+
+/** Display copy only. Stripe is the authority on what is actually charged. */
+export const PRICE_LABEL = "$9.99";
+
+/**
+ * The n8n webhook URL is deliberately absent from this file. Generation goes
+ * through this Edge Function, which checks the caller's session and purchase
+ * before forwarding. Putting the n8n URL back into a VITE_ variable would
+ * inline it into the bundle and hand every visitor a free, unmetered endpoint.
+ */
+export const GENERATE_URL: string = supabaseUrl.url
+  ? `${supabaseUrl.url.replace(/\/$/, "")}/functions/v1/generate`
+  : "";
 
 export const ACCEPTED_TYPES = [
   "image/jpeg",

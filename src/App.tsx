@@ -3,9 +3,11 @@ import { useEffect, useRef, useState } from "react";
 import AuthScreen from "./components/AuthScreen";
 import Header from "./components/Header";
 import ImageDropTile from "./components/ImageDropTile";
+import Paywall from "./components/Paywall";
 import ResultTile from "./components/ResultTile";
 import StatusPills from "./components/StatusPills";
 import { useAuth } from "./hooks/useAuth";
+import { useEntitlement } from "./hooks/useEntitlement";
 import { useImageSlot } from "./hooks/useImageSlot";
 import { generate } from "./lib/api";
 import { GENERIC_ERROR } from "./lib/constants";
@@ -31,10 +33,39 @@ export default function App() {
     return <div className="min-h-screen" aria-busy="true" />;
   }
 
-  return session ? <Studio /> : <AuthScreen />;
+  return session ? <PaidGate /> : <AuthScreen />;
+}
+
+/**
+ * Payment gate, one level below the auth gate. This decides what to *render*;
+ * it is not what protects the product. The generate Edge Function re-checks the
+ * purchase server-side, so bypassing this in devtools buys nothing but a
+ * studio whose Generate button returns 402.
+ */
+function PaidGate() {
+  const { session } = useAuth();
+  const { paid, loading, confirming, refresh } = useEntitlement(session?.user.id);
+
+  if (loading) {
+    return <div className="min-h-screen" aria-busy="true" />;
+  }
+
+  if (!paid) {
+    return (
+      <Paywall
+        userId={session?.user.id ?? ""}
+        email={session?.user.email}
+        confirming={confirming}
+        onRecheck={refresh}
+      />
+    );
+  }
+
+  return <Studio />;
 }
 
 function Studio() {
+  const { session } = useAuth();
   const image1 = useImageSlot();
   const image2 = useImageSlot();
 
@@ -79,7 +110,12 @@ function Studio() {
     setErrorMessage(null);
 
     try {
-      const blob = await generate(image1.file, image2.file, controller.signal);
+      const blob = await generate(
+        image1.file,
+        image2.file,
+        controller.signal,
+        session?.access_token ?? "",
+      );
       if (controller.signal.aborted) return;
 
       if (resultUrlRef.current) URL.revokeObjectURL(resultUrlRef.current);
